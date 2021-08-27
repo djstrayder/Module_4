@@ -69,6 +69,7 @@ class FormFinal extends FormBase {
       $year = (string) ((date('Y')) + 1);
       // Create rows according to $num_of_rows.
       for ($i = 1; $i <= $num_of_rows; $i++) {
+
         $form['cells'][$table][$i]['year'] = [
           '#type' => 'textfield',
           '#title' => $this->t($year),
@@ -224,6 +225,15 @@ class FormFinal extends FormBase {
     ];
 
     return $form;
+  }
+
+  /**
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+
+
   }
 
   /**
