@@ -40,7 +40,6 @@ class FormFinal extends FormBase {
       $num_of_rows = 1;
       $form_state->set('num_of_rows', $num_of_rows);
     }
-
     for ($table = 1; $table <= $num_of_table; $table++) {
       // Add the headers.
       $form['cells'][$table] = [
@@ -67,7 +66,7 @@ class FormFinal extends FormBase {
           'YTD',
         ],
       ];
-      $year = (string) ((date('Y')) - 1);
+      $year = (string) ((date('Y')) + 1);
       // Create rows according to $num_of_rows.
       for ($i = 1; $i <= $num_of_rows; $i++) {
 
@@ -75,7 +74,7 @@ class FormFinal extends FormBase {
           '#type' => 'textfield',
           '#title' => $this->t($year),
           '#title_display' => 'invisible',
-          '#default_value' => $year + $i,
+          '#default_value' => $year - $i,
           '#size' => '4',
         ];
 
@@ -227,23 +226,10 @@ class FormFinal extends FormBase {
 
     return $form;
   }
-
-  /**
-   * Function that checks if the field value is empty.
-   */
+  //Function that checks if the field value is empty.
   public function zeroCheck($m) {
-    if ($m == '') {
+    if ($m=='') {
       $m = 0;
-    }
-    return $m;
-  }
-
-  /**
-   * Function that translates all values greater than one into one.
-   */
-  public function oneCheck($m) {
-    if ($m >= 1) {
-      $m = 1;
     }
     return $m;
   }
@@ -253,61 +239,67 @@ class FormFinal extends FormBase {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    $months = [
-      'jan',
-      'feb',
-      'mar',
-      'apr',
-      'may',
-      'jun',
-      'jul',
-      'aug',
-      'sep',
-      'oct',
-      'nov',
-      'dec',
-    ];
+    //    $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep',
+    //      'oct', 'nov', 'dec'];
+    //    $m = [];
     $num_of_table = $form_state->get('num_of_table');
     $value = $form_state->getValues();
-    for ($table = 1; $table <= $num_of_table; $table++) {
+    $errorMm = 0;
+    $errorMp = 0;
+    for ($table = 1; $table<=$num_of_table; $table++) {
       $num_of_rows = $form_state->get('num_of_rows');
-      for ($i = 1; $i <= $num_of_rows; $i++) {
-        for ($s = 0; $s <= count($months) - 1; $s++) {
-          $value[$table][$i][$months[$s]] = $this->zeroCheck($value[$table][$i][$months[$s]]);
-          $value[$table][$i][$months[$s]] = $this->oneCheck($value[$table][$i][$months[$s]]);
-        }
-      }
-    }
-    for ($table = 1; $table <= $num_of_table; $table++) {
-      $num_of_rows = $form_state->get('num_of_rows');
-      $error = [];
-      for ($i = 1; $i <= $num_of_rows; $i++) {
-        for ($s = 0; $s <= count($months) - 2; $s++) {
-          if ($value[$table][$i][$months[$s]] <= $value[$table][$i][$months[$s + 1]]) {
-            array_push($error, 0);
-          }
-          else {
-            array_push($error, 1);
-          }
-        }
-        if ($i + 1 > $num_of_rows) {
-          continue;
-        }
-        if ($value[$table][$i][$months[array_key_last($months)]] <= $value[$table][$i + 1][$months[0]]) {
-          array_push($error, 0);
+      for ($i=1; $i<=$num_of_rows; $i++) {
+        $m1 = $value[$table][$i]['jan'];
+        $m2 = $value[$table][$i]['feb'];
+        $m3 = $value[$table][$i]['mar'];
+        $m4 = $value[$table][$i]['apr'];
+        $m5 = $value[$table][$i]['may'];
+        $m6 = $value[$table][$i]['jun'];
+        if ($m1 <= $m2) {
+          $m12 = 0;
         }
         else {
-          array_push($error, 1);
+          $m12 = 1;
         }
-      }
-      if (array_sum($error) >= 2) {
-        $mmm = 1;
-      }
-      else {
-        $mmm = 0;
+        if ($m2 <= $m3) {
+          $m23 = 0;
+        }
+        else {
+          $m23 = 1;
+        }
+        if ($m3 <= $m4) {
+          $m34 = 0;
+        }
+        else {
+          $m34 = 1;
+        }
+        if ($m4 <= $m5) {
+          $m45 = 0;
+        }
+        else {
+          $m45 = 1;
+        }
+        if ($m5 <= $m6) {
+          $m56 = 0;
+        }
+        else {
+          $m56 = 1;
+        }
+        if ($m6 <= $m1) {
+          $m61 = 0;
+        }
+        else {
+          $m61 = 1;
+        }
+        $mcount = $m12 + $m23 + $m34 + $m45 + $m56 + $m61;
+
+        return $mcount;
+
+
+
       }
     }
-    return $mmm;
+
   }
 
   /**
@@ -336,13 +328,6 @@ class FormFinal extends FormBase {
     $form_state->setRebuild();
   }
 
-  /**
-   * Ajax submit.
-   */
-  public function ajaxSubmit(array &$form, FormStateInterface $form_state) {
-    $form = $form_state->getCompleteForm();
-    return $form;
-  }
 
   /**
    * @param array $form
@@ -352,15 +337,15 @@ class FormFinal extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     //     Find out what was submitted.
     $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep',
-      'oct', 'nov', 'dec', ];
+      'oct', 'nov', 'dec'];
     $m = [];
     $num_of_table = $form_state->get('num_of_table');
     $value = $form_state->getValues();
-    for ($table = 1; $table <= $num_of_table; $table++) {
+    for ($table = 1; $table<=$num_of_table; $table++) {
       $num_of_rows = $form_state->get('num_of_rows');
-      for ($i = 1; $i <= $num_of_rows; $i++) {
+      for ($i=1; $i<=$num_of_rows; $i++) {
         $valueYear = $value[$table][$i]['year'];
-        for ($s = 0; $s <= count($months) - 1; $s++) {
+        for ($s=0; $s<=count($months) - 1; $s++) {
           $m[$s] = $value[$table][$i][$months[$s]];
           $m[$s] = $this->zeroCheck($m[$s]);
         }
@@ -381,7 +366,7 @@ class FormFinal extends FormBase {
           'q2' => $q2,
           'jul' => $m[6],
           'aug' => $m[7],
-          'sep' => $m[8],
+          'sep'=> $m[8],
           'q3' => $q3,
           'oct' => $m[9],
           'nov' => $m[10],
@@ -392,6 +377,10 @@ class FormFinal extends FormBase {
       }
     }
     \Drupal::messenger()->addMessage(print_r($data, TRUE));
+    //    $data = $form_state->getValues();
+    //    \Drupal::messenger()->addMessage(print_r($data['cells'], TRUE));
+
+
   }
 
 }
